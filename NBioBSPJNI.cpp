@@ -13,6 +13,7 @@
 #include <jni.h>
 #include "NBioBSPJNI.h"   // Generated
 #include "NBioAPI.h"
+#include <cstring>
 
 using namespace std;
 
@@ -21,11 +22,6 @@ using namespace std;
 NBioAPI_HANDLE m_hNBioBSP;
 
 bool isOpen = false;
-
-
-
-
-
 
 
     void IniciarSDK(){
@@ -37,6 +33,12 @@ bool isOpen = false;
     }
 
     }
+
+NBioAPI_RETURN MyCaptureCallback(NBioAPI_WINDOW_CALLBACK_PARAM_PTR_0 pCallbackParam, NBioAPI_VOID_PTR pUserParam)
+{
+
+    return NBioAPIERROR_NONE;
+}
 
 
 JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeOpenDevice(JNIEnv *env, jobject thisObj) {
@@ -55,25 +57,151 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeOpenDevice(JNI
 
         //nRet = NBioAPI_GetDeviceInfo(m_hNBioBSP, deviceID, 0, &m_hNBioBSP);
     }
-
     return nRet;
 }
 
 
 
-// chamar metodo para captura da digital e aponta espaco na memoria
-JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_capture(JNIEnv *env, jobject thisObj, NBioAPI_FIR_HANDLE param1) {
+JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
+  (JNIEnv *env, jobject thisObj, jobject iLevel) {
+    jfieldID fid; /* store the field ID */
+    jobject i;
 
-    NBioAPI_FIR_HANDLE fir;
-    NBioAPI_FIR_HANDLE hCapturedFIR1;
+    /* Get a reference to obj's class */
+    //jclass thisClass = env->GetObjectClass(thisObj);
+    jclass thisClass = env->FindClass("NBioBSPJNI/NBioBSPJNI$Items");
 
-    NBioAPI_Capture(m_hNBioBSP, NBioAPI_FIR_PURPOSE_VERIFY, &hCapturedFIR1, 3000,NULL,NULL);
+    jfieldID field = env->GetFieldID(thisClass, "idade","I"); // Type int
+
+    if (NULL == field) return;
+
+    //get int value given by FieldID
+    int number = env->GetIntField(iLevel, field);
+
+    jfieldID field2 = env->GetFieldID(thisClass, "nome", "Ljava/lang/String;");
+
+    jstring nome = (jstring) env->GetObjectField(iLevel, field2);
+
+    const char *nativeFileString = env->GetStringUTFChars(nome, NULL);
+
+   cout << "capturado " << number << endl;
+   cout << "capturado " << nativeFileString << endl;
+
+   env->SetIntField (iLevel,field, 5);
 
 
-
-   cout << "capturado" << endl;
    return;
-}
+
+
+  }
+
+
+
+JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeCapture
+  (JNIEnv *env, jobject thisObj,jobject fir_handle) {
+
+
+
+    jclass thisClass = env->FindClass("NBioBSPJNI/NBioBSPJNI$FIR_HANDLE");
+
+    jfieldID field = env->GetFieldID(thisClass, "Handle", "J");
+
+    jlong number = env->GetLongField(fir_handle, field);
+    env->SetIntField (fir_handle,field, 10);
+    //env->SetIntField (fir_handle,field2, 5);
+
+   cout << "capture native number >  "  <<  number << endl;
+
+
+   return;
+
+
+  }
+
+
+
+
+JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEnv *env,jobject thisObj, NBioAPI_HANDLE_PTR hHandle,  NBioAPI_FIR_HANDLE_PTR piStoredTemplate,
+     NBioAPI_BOOL* pbResult,NBioAPI_FIR_PAYLOAD_PTR pPayload, NBioAPI_FIR_HANDLE_PTR  phAuditData,  NBioAPI_WINDOW_OPTION_PTR pWindowOption) {
+
+
+        NBioAPI_RETURN nRet;
+
+
+        NBioAPI_FIR_PAYLOAD payload;
+        // Windows Option setting
+        NBioAPI_WINDOW_OPTION winOption;
+
+        memset(&winOption, 0, sizeof(NBioAPI_WINDOW_OPTION));
+        winOption.Length = sizeof(NBioAPI_WINDOW_OPTION);
+        winOption.CaptureCallBackInfo.CallBackType = 0;
+        winOption.CaptureCallBackInfo.CallBackFunction = MyCaptureCallback;
+
+
+        NBioAPI_BOOL resultado;
+
+        cout << "capturado" << piStoredTemplate << endl;
+
+
+        NBioAPI_FIR_HANDLE digi = *piStoredTemplate;
+        NBioAPI_INPUT_FIR inputFIR;
+        inputFIR.Form = NBioAPI_FIR_FORM_HANDLE;
+        inputFIR.InputFIR.FIRinBSP =  &digi;
+
+
+     nRet = NBioAPI_Verify(m_hNBioBSP, &inputFIR, &resultado, &payload, -1, NULL, &winOption);
+      cout << "resultado C++ " << resultado << endl;
+     pbResult = &resultado;
+
+
+    return nRet;
+
+
+
+
+     }
+
+JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify2
+    (JNIEnv *env,jobject thisObj, NBioAPI_FIR_HANDLE hHandle, jstring *strin) {
+    NBioAPI_RETURN nRet;
+    jboolean blnIsCopy;
+
+
+
+    return 0;
+
+/*
+        NBioAPI_FIR_PAYLOAD payload;
+        // Windows Option setting
+        NBioAPI_WINDOW_OPTION winOption;
+
+        NBioAPI_FIR_HANDLE *hCapturedFIR1;
+
+
+        //NBioAPI_Capture(m_hNBioBSP, NBioAPI_FIR_PURPOSE_VERIFY, &hCapturedFIR1, 3000,NULL,NULL);
+
+
+        NBioAPI_INPUT_FIR inputFIR;
+        inputFIR.Form = NBioAPI_FIR_FORM_HANDLE;
+        inputFIR.InputFIR.FIRinBSP = &hHandle;
+
+        NBioAPI_BOOL resultado;
+
+
+        nRet = NBioAPI_Verify(m_hNBioBSP, &inputFIR, &resultado, &payload, -1, NULL, &winOption);
+
+        cout << "resultado C++ " << resultado << endl;
+
+    return nRet;
+
+    */
+
+
+
+
+
+
+    }
 
 
 
