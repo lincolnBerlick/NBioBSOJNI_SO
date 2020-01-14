@@ -26,11 +26,11 @@ bool isOpen = false;
 
     void IniciarSDK(){
 
-    if(!isOpen){
-        NBioAPI_Init(&m_hNBioBSP);
-        cout << "open" << endl;
-        isOpen = true;
-    }
+        if(!isOpen){
+            NBioAPI_Init(&m_hNBioBSP);
+            cout << "open" << endl;
+            isOpen = true;
+        }
 
     }
 
@@ -102,19 +102,21 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeCapture
 
 
 
-    jclass thisClass = env->FindClass("NBioBSPJNI/NBioBSPJNI$FIR_HANDLE");
+    NBioAPI_WINDOW_OPTION winOption;
+    NBioAPI_FIR_HANDLE hCapturedFIR1 = NBioAPI_INVALID_HANDLE;
+    NBioAPI_RETURN nRet;
 
+
+
+    nRet = NBioAPI_Capture(m_hNBioBSP, NBioAPI_FIR_PURPOSE_VERIFY, &hCapturedFIR1, -1, NULL, &winOption);
+    jclass thisClass = env->FindClass("NBioBSPJNI/NBioBSPJNI$FIR_HANDLE");
     jfieldID field = env->GetFieldID(thisClass, "Handle", "J");
 
     jlong number = env->GetLongField(fir_handle, field);
-    env->SetIntField (fir_handle,field, 10);
-    //env->SetIntField (fir_handle,field2, 5);
-
-   cout << "capture native number >  "  <<  number << endl;
+    env->SetLongField (fir_handle,field, hCapturedFIR1);
 
 
    return;
-
 
   }
 
@@ -125,32 +127,20 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEn
      NBioAPI_BOOL* pbResult,NBioAPI_FIR_PAYLOAD_PTR pPayload, NBioAPI_FIR_HANDLE_PTR  phAuditData,  NBioAPI_WINDOW_OPTION_PTR pWindowOption) {
 
 
-        NBioAPI_RETURN nRet;
+    NBioAPI_RETURN nRet;
+    NBioAPI_FIR_PAYLOAD payload;        // Windows Option setting
+    NBioAPI_WINDOW_OPTION winOption;
 
 
-        NBioAPI_FIR_PAYLOAD payload;
-        // Windows Option setting
-        NBioAPI_WINDOW_OPTION winOption;
+    NBioAPI_BOOL resultado;
 
-        memset(&winOption, 0, sizeof(NBioAPI_WINDOW_OPTION));
-        winOption.Length = sizeof(NBioAPI_WINDOW_OPTION);
-        winOption.CaptureCallBackInfo.CallBackType = 0;
-        winOption.CaptureCallBackInfo.CallBackFunction = MyCaptureCallback;
-
-
-        NBioAPI_BOOL resultado;
-
-        cout << "capturado" << piStoredTemplate << endl;
-
-
-        NBioAPI_FIR_HANDLE digi = *piStoredTemplate;
-        NBioAPI_INPUT_FIR inputFIR;
-        inputFIR.Form = NBioAPI_FIR_FORM_HANDLE;
-        inputFIR.InputFIR.FIRinBSP =  &digi;
-
+    NBioAPI_FIR_HANDLE digi = *piStoredTemplate;
+    NBioAPI_INPUT_FIR inputFIR;
+    inputFIR.Form = NBioAPI_FIR_FORM_HANDLE;
+    inputFIR.InputFIR.FIRinBSP =  &digi;
 
      nRet = NBioAPI_Verify(m_hNBioBSP, &inputFIR, &resultado, &payload, -1, NULL, &winOption);
-      cout << "resultado C++ " << resultado << endl;
+     cout << "resultado C++ " << resultado << endl;
      pbResult = &resultado;
 
 
