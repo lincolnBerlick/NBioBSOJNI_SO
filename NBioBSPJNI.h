@@ -19,7 +19,7 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeOpenDevice
     (JNIEnv *env, jobject thisObj);
 
 JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeCapture
-    (JNIEnv *env, jobject thisObj,jobject fir_handle);
+   (JNIEnv *jenv, jint purpose,jobject fir_handle, jint timeout, jobject fir_handleaudit, jobject winoption);
 
     JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
    (JNIEnv *env, jobject thisObj, jobject iLevel);
@@ -27,15 +27,8 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeCapture
 
 
 JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify
-    (JNIEnv *env,jobject thisObj, NBioAPI_HANDLE_PTR hHandle,  NBioAPI_FIR_HANDLE_PTR piStoredTemplate,
-     NBioAPI_BOOL* pbResult,NBioAPI_FIR_PAYLOAD_PTR pPayload, NBioAPI_FIR_HANDLE_PTR  phAuditData,  NBioAPI_WINDOW_OPTION_PTR pWindowOption);
+ (JNIEnv *env,jobject thisObj, jobject INPUT_FIR, jboolean result, jobject PAY_LOAD );
 
-
-    JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify2
-    (JNIEnv *env,jobject thisObj, NBioAPI_FIR_HANDLE hHandle, jstring *strin);
-
-      JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerifyMatch
-  (JNIEnv *env, jobject thisObj, NBioAPI_HANDLE *param1, NBioAPI_FIR_HANDLE param2,  NBioAPI_INPUT_FIR param3,  NBioAPI_FIR_PAYLOAD_PTR *param4);
 
 
 
