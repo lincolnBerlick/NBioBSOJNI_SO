@@ -58,33 +58,7 @@ NBioAPI_FIR_HANDLE getFIR_HANDLE(JNIEnv *env, jobject fir_handle){
 
 }
 
-void getINPUT_FIR(JNIEnv *env, jobject input_fir, NBioAPI_INPUT_FIR *retorno){
 
-
-    NBioAPI_INPUT_FIR inputFIR; //vai retornar
-
-
-    jclass thisClass = env->FindClass("NBioBSPJNI/NBioBSPJNI$INPUT_FIR");
-    jfieldID field_FIRHandle = env->GetFieldID(thisClass, "FIRHandle", "J");
-    jfieldID field_Form = env->GetFieldID(thisClass, "Form", "I");
-    long digital = env->GetLongField(input_fir, field_FIRHandle);
-    long *dig = &digital;
-
-    cout << "valor de  " << digital << endl;
-    int form = env->GetIntField(input_fir, field_Form);
-
-    retorno->InputFIR.FIR = &digital;
-    //(*retorno).InputFIR.FIR = &dig;
-    //*retorno.InputFIR.FIR = &dig;
-    retorno->Form = form;
-
-   // NBioAPI_INPUT_FIR* reetorno = inputFIR;
-
-    return;
-
-
-
-}
 
 
 JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeOpenDevice(JNIEnv *env, jobject thisObj) {
@@ -162,7 +136,23 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeCapture
   }
 
 
+void getINPUT_FIR(JNIEnv *env, jobject input_fir, NBioAPI_INPUT_FIR &fir, long &id){
 
+    jclass thisClass = env->FindClass("NBioBSPJNI/NBioBSPJNI$INPUT_FIR");
+    jfieldID field_FIRHandle = env->GetFieldID(thisClass, "FIRHandle", "J");
+    jfieldID field_Form = env->GetFieldID(thisClass, "Form", "I");
+
+
+
+
+
+
+
+    return;
+
+
+
+    }
 
 JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEnv *env,jobject thisObj, jobject INPUT_FIR, jboolean result, jobject PAY_LOAD ) {
 
@@ -173,21 +163,40 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEn
     NBioAPI_BOOL resultado;
     NBioAPI_INPUT_FIR inputFIR;
 
-    NBioAPI_INPUT_FIR inputFIR2;
-    NBioAPI_INPUT_FIR fir;
+    jclass thisClass = env->GetObjectClass(INPUT_FIR);
+    jfieldID field_FIRHandle = env->GetFieldID(thisClass, "FIRHandle", "J");
+
+    jfieldID field_Form = env->GetFieldID(thisClass, "Form", "I");
 
 
 
-    getINPUT_FIR(env, INPUT_FIR, &inputFIR2);
+    jlong digital = env->GetLongField(INPUT_FIR, field_FIRHandle);
+    int form = env->GetIntField(INPUT_FIR, field_Form);
 
-    fir = inputFIR2;
+    inputFIR.InputFIR.FIR = &digital;
+    inputFIR.Form = form;
 
-     nRet = NBioAPI_Verify(m_hNBioBSP, &inputFIR2, &resultado, &payload, -1, NULL, &winOption);
+    //NBioAPI_INPUT_FIR fir = getFIR_HandleOBJ(env, &FIR_HANDLE);
+
+    //jclass booleanclass = env->GetObjectClass(result);
+    //jfieldID fieldbool = env->GetFieldID(booleanclass, "paramBoolean", "Z");
+
+    //bool resu =  env->GetBooleanField(result, fieldbool);
+
+//env->SetBooleanField(result, true,);
+result = true;
+
+//     cout << "resultado veio " << resu << endl;
+
+     nRet = NBioAPI_Verify(m_hNBioBSP, &inputFIR, &resultado, &payload, -1, NULL, &winOption);
      cout << "resultado C++ " << resultado << endl;
 
 
 
+
     return nRet;
+
+
 
 
      }
