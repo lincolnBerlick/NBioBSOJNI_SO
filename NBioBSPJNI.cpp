@@ -81,34 +81,26 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeOpenDevice(JNI
 }
 
 
+int a = 0;
+
+static jclass classInteger;
+static jmethodID midIntegerInit;
+
 
 JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
-  (JNIEnv *env, jobject thisObj, jobject iLevel) {
+  (JNIEnv *env, jobject thisObj, jobject  b) {
     jfieldID fid; /* store the field ID */
-    /* Get a reference to obj's class */
-    //jclass thisClass = env->GetObjectClass(thisObj);
-    jclass thisClass = env->FindClass("NBioBSPJNI/NBioBSPJNI$Items");
 
-    jfieldID field = env->GetFieldID(thisClass, "idade","I"); // Type int
+   jclass c = env->GetObjectClass(b);
 
-    if (NULL == field) return;
+   fid = env->GetFieldID(c,"value", "Z");
+   jbyte old = env->GetBooleanField(b,fid);
+   cout << "capturado " << old << endl;
 
-    //get int value given by FieldID
-    int number = env->GetIntField(iLevel, field);
-
-    jfieldID field2 = env->GetFieldID(thisClass, "nome", "Ljava/lang/String;");
-
-    jstring nome = (jstring) env->GetObjectField(iLevel, field2);
-
-    const char *nativeFileString = env->GetStringUTFChars(nome, NULL);
-
-   cout << "capturado " << number << endl;
-   cout << "capturado " << nativeFileString << endl;
-
-   env->SetIntField (iLevel,field, 5);
+   env->SetBooleanField(b,fid,0);
 
 
-   return;
+   return ;
 
 
   }
@@ -116,7 +108,7 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
 
 
 JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeCapture
-  (JNIEnv *env, jint proposito,jobject fir_handle, jint timeout, jobject fir_handleaudit, jobject winoption)  {
+  (JNIEnv *env,jobject thisObj, jint proposito,jobject fir_handle, jint timeout, jobject fir_handleaudit, jobject winoption)  {
 
 
     NBioAPI_WINDOW_OPTION winOption;
@@ -143,18 +135,13 @@ void getINPUT_FIR(JNIEnv *env, jobject input_fir, NBioAPI_INPUT_FIR &fir, long &
     jfieldID field_Form = env->GetFieldID(thisClass, "Form", "I");
 
 
-
-
-
-
-
     return;
 
 
 
     }
 
-JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEnv *env,jobject thisObj, jobject INPUT_FIR, jboolean result, jobject PAY_LOAD ) {
+JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEnv *env,jobject thisObj, jobject INPUT_FIR, jobject paramBoolean, jobject PAY_LOAD, jint inteiro ) {
 
 
     NBioAPI_RETURN nRet;
@@ -163,12 +150,12 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEn
     NBioAPI_BOOL resultado;
     NBioAPI_INPUT_FIR inputFIR;
 
+
+//recebe objecto de java e adiciona a objeto nativo
     jclass thisClass = env->GetObjectClass(INPUT_FIR);
     jfieldID field_FIRHandle = env->GetFieldID(thisClass, "FIRHandle", "J");
 
     jfieldID field_Form = env->GetFieldID(thisClass, "Form", "I");
-
-
 
     jlong digital = env->GetLongField(INPUT_FIR, field_FIRHandle);
     int form = env->GetIntField(INPUT_FIR, field_Form);
@@ -176,27 +163,28 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEn
     inputFIR.InputFIR.FIR = &digital;
     inputFIR.Form = form;
 
-    //NBioAPI_INPUT_FIR fir = getFIR_HandleOBJ(env, &FIR_HANDLE);
 
-    //jclass booleanclass = env->GetObjectClass(result);
-    //jfieldID fieldbool = env->GetFieldID(booleanclass, "paramBoolean", "Z");
+    nRet = NBioAPI_Verify(m_hNBioBSP, &inputFIR, &resultado, &payload, -1, NULL, &winOption);
+//fim objeto nativo
 
-    //bool resu =  env->GetBooleanField(result, fieldbool);
-
-//env->SetBooleanField(result, true,);
-result = true;
-
-//     cout << "resultado veio " << resu << endl;
-
-     nRet = NBioAPI_Verify(m_hNBioBSP, &inputFIR, &resultado, &payload, -1, NULL, &winOption);
-     cout << "resultado C++ " << resultado << endl;
+    if(resultado == true){
 
 
+    //devolve valor booleano
+   jfieldID fid; /* store the field ID */
+   jclass c = env->GetObjectClass(paramBoolean);
+   fid = env->GetFieldID(c,"value", "Z");
+   jbyte old = env->GetBooleanField(paramBoolean,fid);
+
+   env->SetBooleanField(paramBoolean,fid,1);
+
+    }
 
 
-    return nRet;
 
 
+
+    return 1;
 
 
      }
