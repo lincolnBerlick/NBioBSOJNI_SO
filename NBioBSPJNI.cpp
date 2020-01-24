@@ -21,6 +21,7 @@ using namespace std;
 
 NBioAPI_HANDLE m_hNBioBSP;
 
+
 bool isOpen = false;
 
 
@@ -60,6 +61,15 @@ NBioAPI_FIR_HANDLE getFIR_HANDLE(JNIEnv *env, jobject fir_handle){
 
 
 
+int destroyobject(NBioAPI_FIR_HANDLE firhandle){
+
+
+
+    return NBioAPI_FreeFIRHandle(m_hNBioBSP, firhandle);
+
+
+
+}
 
 JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeOpenDevice(JNIEnv *env, jobject thisObj) {
 
@@ -80,17 +90,9 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeOpenDevice(JNI
     return nRet;
 }
 
-
-int a = 0;
-
-static jclass classInteger;
-static jmethodID midIntegerInit;
-
-
 JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
   (JNIEnv *env, jobject thisObj, jobject  b) {
     jfieldID fid; /* store the field ID */
-
    jclass c = env->GetObjectClass(b);
 
    fid = env->GetFieldID(c,"value", "Z");
@@ -99,7 +101,6 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
 
    env->SetBooleanField(b,fid,0);
 
-
    return ;
 
 
@@ -107,7 +108,57 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
 
 
 
-JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeCapture
+
+  NBioAPI_FIR_PURPOSE verificarpurpose(jint proposito)
+  {
+
+      if(proposito == 0) {
+
+        return NBioAPI_FIR_PURPOSE_IDENTIFY;
+      }
+
+      NBioAPI_FIR_PURPOSE purpose;
+      switch(proposito){
+        case 1:
+            purpose = NBioAPI_FIR_PURPOSE_VERIFY;
+            break;
+
+        case 2:
+            purpose = NBioAPI_FIR_PURPOSE_IDENTIFY;
+            break;
+
+        case 3:
+            purpose = NBioAPI_FIR_PURPOSE_ENROLL;
+            break;
+
+        case 4:
+            purpose = NBioAPI_FIR_PURPOSE_ENROLL_FOR_VERIFICATION_ONLY;
+            break;
+
+        case 5:
+            purpose = NBioAPI_FIR_PURPOSE_ENROLL_FOR_IDENTIFICATION_ONLY;
+            break;
+
+        case 6:
+            purpose = NBioAPI_FIR_PURPOSE_AUDIT;
+            break;
+
+        case 16:
+            purpose = NBioAPI_FIR_PURPOSE_UPDATE;
+            break;
+
+      }
+
+
+    return purpose;
+
+
+  }
+
+
+
+  //winoption é irrelevante para linux nbiobsp nativo não chama interface gráfica no linux.
+  JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeCapture
   (JNIEnv *env,jobject thisObj, jint proposito,jobject fir_handle, jint timeout, jobject fir_handleaudit, jobject winoption)  {
 
 
@@ -115,17 +166,20 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeCapture
     NBioAPI_FIR_HANDLE hCapturedFIR1;
     NBioAPI_RETURN nRet;
 
-    nRet = NBioAPI_Capture(m_hNBioBSP, NBioAPI_FIR_PURPOSE_VERIFY, &hCapturedFIR1, -1, NULL, &winOption);
+    int timeoutnativo = ((int) timeout <= 0) ? -1 : timeout;
+
+    nRet = NBioAPI_Capture(m_hNBioBSP, verificarpurpose(proposito), &hCapturedFIR1, timeoutnativo, NULL, &winOption);
     jclass thisClass = env->GetObjectClass(fir_handle);
     jfieldID field = env->GetFieldID(thisClass, "Handle", "J");
-
     //long number = env->GetLongField(fir_handle, field);
-    env->SetLongField(fir_handle,field, hCapturedFIR1);
-
+    env->SetLongField(fir_handle, field, hCapturedFIR1);
 
    return;
 
   }
+
+
+
 
 
 void getINPUT_FIR(JNIEnv *env, jobject input_fir, NBioAPI_INPUT_FIR &fir, long &id){
@@ -134,14 +188,15 @@ void getINPUT_FIR(JNIEnv *env, jobject input_fir, NBioAPI_INPUT_FIR &fir, long &
     jfieldID field_FIRHandle = env->GetFieldID(thisClass, "FIRHandle", "J");
     jfieldID field_Form = env->GetFieldID(thisClass, "Form", "I");
 
-
     return;
-
-
 
     }
 
-JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEnv *env,jobject thisObj, jobject INPUT_FIR, jobject paramBoolean, jobject PAY_LOAD, jint inteiro ) {
+
+
+
+
+JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEnv *env,jobject thisObj, jobject INPUT_FIR, jobject paramBoolean, jobject PAY_LOAD) {
 
 
     NBioAPI_RETURN nRet;
@@ -163,28 +218,19 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEn
     inputFIR.InputFIR.FIR = &digital;
     inputFIR.Form = form;
 
-
     nRet = NBioAPI_Verify(m_hNBioBSP, &inputFIR, &resultado, &payload, -1, NULL, &winOption);
 //fim objeto nativo
 
-    if(resultado == true){
-
-
+    if(resultado){
     //devolve valor booleano
-   jfieldID fid; /* store the field ID */
-   jclass c = env->GetObjectClass(paramBoolean);
-   fid = env->GetFieldID(c,"value", "Z");
-   jbyte old = env->GetBooleanField(paramBoolean,fid);
-
-   env->SetBooleanField(paramBoolean,fid,1);
-
+       jfieldID fid; /* store the field ID */
+       jclass c = env->GetObjectClass(paramBoolean);
+       fid = env->GetFieldID(c,"value", "Z");
+       jbyte old = env->GetBooleanField(paramBoolean,fid);
+       env->SetBooleanField(paramBoolean,fid,1);
     }
 
-
-
-
-
-    return 1;
+    return nRet;
 
 
      }

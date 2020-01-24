@@ -27,7 +27,7 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeCapture
 
 
 JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify
- (JNIEnv *env,jobject thisObj, jobject INPUT_FIR, jobject result, jobject PAY_LOAD , jint inteiro);
+ (JNIEnv *env,jobject thisObj, jobject INPUT_FIR, jobject result, jobject PAY_LOAD);
 
 
 
