@@ -215,6 +215,7 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEn
     jlong digital = env->GetLongField(INPUT_FIR, field_FIRHandle);
     int form = env->GetIntField(INPUT_FIR, field_Form);
 
+
     inputFIR.InputFIR.FIR = &digital;
     inputFIR.Form = form;
 
