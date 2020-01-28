@@ -41,6 +41,25 @@ NBioAPI_RETURN MyCaptureCallback(NBioAPI_WINDOW_CALLBACK_PARAM_PTR_0 pCallbackPa
     return NBioAPIERROR_NONE;
 }
 
+NBioAPI_INPUT_FIR pegarinputfitdefirhandle(JNIEnv *env, jobject INPUT_FIR){
+
+    NBioAPI_RETURN nRet;
+    NBioAPI_INPUT_FIR inputFIR;
+
+//recebe objecto de java e adiciona a objeto nativo
+    jclass thisClass = env->GetObjectClass(INPUT_FIR);
+    jfieldID field_FIRHandle = env->GetFieldID(thisClass, "FIRHandle", "J");
+    jfieldID field_Form = env->GetFieldID(thisClass, "Form", "I");
+
+    jlong digital = env->GetLongField(INPUT_FIR, field_FIRHandle);
+    int form = env->GetIntField(INPUT_FIR, field_Form);
+
+    inputFIR.InputFIR.FIR = &digital;
+    inputFIR.Form = form;
+
+    return inputFIR;
+}
+
 
 NBioAPI_FIR_HANDLE getFIR_HANDLE(JNIEnv *env, jobject fir_handle){
 
@@ -61,15 +80,13 @@ NBioAPI_FIR_HANDLE getFIR_HANDLE(JNIEnv *env, jobject fir_handle){
 
 
 
-int destroyobject(NBioAPI_FIR_HANDLE firhandle){
+int destroyobject(NBioAPI_HANDLE handle, NBioAPI_FIR_HANDLE *firhandle){
 
-
-
-    return NBioAPI_FreeFIRHandle(m_hNBioBSP, firhandle);
-
-
+    return NBioAPI_FreeFIRHandle(handle, *firhandle);
 
 }
+
+
 
 JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeOpenDevice(JNIEnv *env, jobject thisObj) {
 
@@ -84,9 +101,23 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeOpenDevice(JNI
 
     nRet = NBioAPI_OpenDevice(m_hNBioBSP,NBioAPI_DEVICE_ID_AUTO);
     if(NBioAPIERROR_NONE == nRet){
-
         //nRet = NBioAPI_GetDeviceInfo(m_hNBioBSP, deviceID, 0, &m_hNBioBSP);
     }
+    return nRet;
+}
+
+JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeCloseDevice(JNIEnv *env, jobject thisObj) {
+
+    IniciarSDK();
+
+    NBioAPI_RETURN nRet;
+   //pega o id do dispositivo
+    NBioAPI_DEVICE_ID deviceID = NBioAPI_GetOpenedDeviceID(m_hNBioBSP);
+        //Device Close.
+    nRet = NBioAPI_CloseDevice(m_hNBioBSP, deviceID);
+       //NBioAPI Terminate
+    NBioAPI_Terminate(m_hNBioBSP);
+
     return nRet;
 }
 
@@ -103,7 +134,24 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
 
    return ;
 
+  }
 
+
+  JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_VerifyMatch
+  (JNIEnv *env, jobject thisObj, jobject  FIR_HANDLE1, jobject FIRHANDLE2, jobject booleano) {
+    jfieldID fid; /* store the field ID */
+   jclass c = env->GetObjectClass(booleano);
+   NBioAPI_RETURN nRet;
+
+
+
+   fid = env->GetFieldID(c,"value", "Z");
+   jbyte old = env->GetBooleanField(booleano,fid);
+   //cout << "capturado " << old << endl;
+
+   env->SetBooleanField(booleano,fid,0);
+
+   return nRet;
   }
 
 
@@ -113,6 +161,7 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
   {
 
       if(proposito == 0) {
+
 
         return NBioAPI_FIR_PURPOSE_IDENTIFY;
       }
@@ -174,6 +223,8 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
     //long number = env->GetLongField(fir_handle, field);
     env->SetLongField(fir_handle, field, hCapturedFIR1);
 
+    //destroyobject(m_hNBioBSP, &hCapturedFIR1);
+
    return;
 
   }
@@ -198,12 +249,13 @@ void getINPUT_FIR(JNIEnv *env, jobject input_fir, NBioAPI_INPUT_FIR &fir, long &
 
 JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEnv *env,jobject thisObj, jobject INPUT_FIR, jobject paramBoolean, jobject PAY_LOAD) {
 
-
+    //IniciarSDK();
     NBioAPI_RETURN nRet;
     NBioAPI_FIR_PAYLOAD payload;        // Windows Option setting
     NBioAPI_WINDOW_OPTION winOption;
     NBioAPI_BOOL resultado;
     NBioAPI_INPUT_FIR inputFIR;
+
 
 
 //recebe objecto de java e adiciona a objeto nativo
@@ -222,16 +274,16 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEn
     nRet = NBioAPI_Verify(m_hNBioBSP, &inputFIR, &resultado, &payload, -1, NULL, &winOption);
 //fim objeto nativo
 
-    if(resultado){
-    //devolve valor booleano
-       jfieldID fid; /* store the field ID */
-       jclass c = env->GetObjectClass(paramBoolean);
-       fid = env->GetFieldID(c,"value", "Z");
-       jbyte old = env->GetBooleanField(paramBoolean,fid);
-       env->SetBooleanField(paramBoolean,fid,1);
-    }
 
-    return nRet;
+    //devolve valor booleano
+   jfieldID fid; /* store the field ID */
+   jclass c = env->GetObjectClass(paramBoolean);
+   fid = env->GetFieldID(c,"value", "Z");
+   jbyte old = env->GetBooleanField(paramBoolean,fid);
+   env->SetBooleanField(paramBoolean,fid, resultado);
+
+
+  return nRet;
 
 
      }
