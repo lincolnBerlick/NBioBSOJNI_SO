@@ -33,6 +33,8 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeCloseDevice
 JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerifyMatch
   (JNIEnv *env, jobject thisObj, jobject  FIR_HANDLE1, jobject FIRHANDLE2, jobject booleano, jobject PAY_LOAD);
 
+//indexsearch
+ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeInitIndexsearch  (JNIEnv *env,jobject thisObj) ;
 
 
 

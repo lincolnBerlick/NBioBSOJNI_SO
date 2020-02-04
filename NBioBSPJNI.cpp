@@ -13,6 +13,7 @@
 #include <jni.h>
 #include "NBioBSPJNI.h"   // Generated
 #include "NBioAPI.h"
+#include "NBioAPI_IndexSearch.h"
 #include <cstring>
 
 using namespace std;
@@ -42,6 +43,8 @@ NBioAPI_RETURN MyCaptureCallback(NBioAPI_WINDOW_CALLBACK_PARAM_PTR_0 pCallbackPa
 }
 
 long digitos;
+
+
 NBioAPI_INPUT_FIR pegarinputfitdefirhandle(JNIEnv *env, jobject INPUT_FIR){
 
     NBioAPI_RETURN nRet;
@@ -178,7 +181,6 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
 
       if(proposito == 0) {
 
-
         return NBioAPI_FIR_PURPOSE_IDENTIFY;
       }
 
@@ -211,9 +213,7 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
         case 16:
             purpose = NBioAPI_FIR_PURPOSE_UPDATE;
             break;
-
       }
-
 
     return purpose;
 
@@ -239,10 +239,10 @@ JNIEXPORT void JNICALL Java_NBioBSPJNI_NBioBSPJNI_TesteObject
     //long number = env->GetLongField(fir_handle, field);
     env->SetLongField(fir_handle, field, hCapturedFIR1);
 
-    //destroyobject(m_hNBioBSP, &hCapturedFIR1);
+
     //NBioAPI_FreeFIRHandle(m_hNBioBSP, hCapturedFIR1);
 
-   return;
+    return;
 
   }
 
@@ -273,7 +273,7 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEn
     NBioAPI_BOOL resultado;
 
 
-//recebe objecto de java e adiciona a objeto nativo
+    //recebe objecto de java e adiciona a objeto nativo
     jclass thisClass = env->GetObjectClass(INPUT_FIR);
     jfieldID field_FIRHandle = env->GetFieldID(thisClass, "FIRHandle", "J");
 
@@ -282,30 +282,43 @@ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeVerify  (JNIEn
     long digital = env->GetLongField(INPUT_FIR, field_FIRHandle);
     int form = env->GetIntField(INPUT_FIR, field_Form);
 
-
     NBioAPI_INPUT_FIR inputFIR = pegarinputfitdefirhandle(env,INPUT_FIR);
-
 
     //cout << "capturado verify digital  " << digital << endl;
 
-   // cout << "capturado verify " << *((long*)inputFIR.InputFIR.FIR) << endl;
 
 
     nRet = NBioAPI_Verify(m_hNBioBSP, &inputFIR, &resultado, &payload, -1, NULL, &winOption);
-   // fim objeto nativo
+    // fim objeto nativo
 
     //devolve valor booleano
-   jfieldID fid; /* store the field ID */
-   jclass c = env->GetObjectClass(paramBoolean);
-   fid = env->GetFieldID(c,"value", "Z");
-   //jbyte old = env->GetBooleanField(paramBoolean,fid);4
-   env->SetBooleanField(paramBoolean,fid, resultado);
-
+    jfieldID fid; /* store the field ID */
+    jclass c = env->GetObjectClass(paramBoolean);
+    fid = env->GetFieldID(c,"value", "Z");
+    //jbyte old = env->GetBooleanField(paramBoolean,fid);4
+    env->SetBooleanField(paramBoolean,fid, resultado);
 
     return nRet;
 
-
      }
+
+
+
+     //INDEX SEARCH
+
+ JNIEXPORT NBioAPI_RETURN JNICALL Java_NBioBSPJNI_NBioBSPJNI_NativeInitIndexsearch  (JNIEnv *env,jobject thisObj) {
+
+
+    NBioAPI_RETURN nRet = NBioAPI_InitIndexSearchEngine(m_hNBioBSP);
+    return nRet;
+
+
+
+ }
+
+
+
+
 
 
 
